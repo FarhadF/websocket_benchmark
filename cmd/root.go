@@ -15,28 +15,30 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
+	"github.com/farhadf/wsbench"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
+	"os"
+	"strings"
 )
 
-var cfgFile string
+var (
+	cfgFile string
+	address string
+	path    string
+	sockets int
+)
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "websocket_benchmark",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Websocket benchmarking tool.",
+	Long:  `Websocket benchmarking tool.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: rootCmd,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -48,17 +50,47 @@ func Execute() {
 	}
 }
 
-func init() { 
+func rootCmd(cmd *cobra.Command, args []string) {
+	if versionFlag := getFlagBoolPtr(cmd, "version"); versionFlag != nil {
+		fmt.Println("websocket_benchmark v1.0.0")
+	} else {
+		wsbench.WsBench(address, path, sockets)
+	}
+}
+
+func getFlagBoolPtr(cmd *cobra.Command, flag string) *bool {
+	f := cmd.Flags().Lookup(flag)
+	if f == nil {
+		log.Printf("Flag accessed but not defined for command %s: %s", cmd.Name(), flag)
+	}
+	// Check if flag was not set at all.
+	if !f.Changed && f.DefValue == f.Value.String() {
+		return nil
+	}
+	var ret bool
+	// Caseless compare.
+	if strings.ToLower(f.Value.String()) == "true" {
+		ret = true
+	} else {
+		ret = false
+	}
+	return &ret
+}
+
+func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.websocket_benchmark.yaml)")
+	//RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.websocket_benchmark.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.Flags().BoolP("version", "v", false, "Prints version info")
+	RootCmd.Flags().StringVarP(&address, "address", "a", "localhost:8080", "Websocket endpoint address")
+	RootCmd.Flags().StringVarP(&path, "path", "p", "/echo", "Websocket endpoint relative path")
+	RootCmd.Flags().IntVarP(&sockets, "sockets", "s", 500, "Number of Sockets to use")
 }
 
 // initConfig reads in config file and ENV variables if set.
