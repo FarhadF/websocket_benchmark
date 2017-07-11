@@ -56,13 +56,15 @@ func WsBench(address string, path string, sockets int, interval int, message str
 				} else if string(readMessage) != message {
 					log.Printf("received message is not the same! recv: %s", readMessage)
 					compareError++
+					readCounter++
 				} else {
 					readBytes += len(readMessage)
+					readCounter++
 				}
 				dur := time.Since(writeTime)
 				log.Println(dur)
 				durr += dur
-				readCounter++
+				//readCounter++
 				//ch <- counter
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
