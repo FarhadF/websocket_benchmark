@@ -92,7 +92,7 @@ func init() {
 	RootCmd.Flags().StringVarP(&address, "address", "a", "localhost:8080", "Websocket endpoint address")
 	RootCmd.Flags().StringVarP(&path, "path", "p", "/echo", "Websocket endpoint relative path")
 	RootCmd.Flags().IntVarP(&sockets, "sockets", "s", 500, "Number of Sockets to use")
-	RootCmd.Flags().IntVarP(&interval, "interval", "i", "1", "Message sending Interval in seconds.")
+	RootCmd.Flags().IntVarP(&interval, "interval", "i", 1, "Message sending Interval in seconds.")
 }
 
 // initConfig reads in config file and ENV variables if set.
