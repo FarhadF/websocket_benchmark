@@ -41,21 +41,20 @@ func WsBench(address string, path string, sockets int, interval int, message str
 					writeError++
 
 				}
-				go func() {
-					_, readMessage, err := co.ReadMessage()
-					if err != nil {
-						log.Println("read:", err)
-						readError++
-					}
-					if string(readMessage) != message {
-						log.Printf("received message is not the same! recv: %s", readMessage)
-						compareError++
-					}
-					dur := time.Since(writeTime)
-					log.Println(dur)
-					durr += dur
-					readCounter++
-				}()
+
+				_, readMessage, err := co.ReadMessage()
+				if err != nil {
+					log.Println("read:", err)
+					readError++
+				}
+				if string(readMessage) != message {
+					log.Printf("received message is not the same! recv: %s", readMessage)
+					compareError++
+				}
+				dur := time.Since(writeTime)
+				log.Println(dur)
+				durr += dur
+				readCounter++
 
 				ch <- counter
 				time.Sleep(time.Duration(interval) * time.Second)
