@@ -25,10 +25,11 @@ import (
 )
 
 var (
-	cfgFile string
-	address string
-	path    string
-	sockets int
+	cfgFile  string
+	address  string
+	path     string
+	sockets  int
+	interval int
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -54,7 +55,7 @@ func rootCmd(cmd *cobra.Command, args []string) {
 	if versionFlag := getFlagBoolPtr(cmd, "version"); versionFlag != nil {
 		fmt.Println("websocket_benchmark v1.0.0")
 	} else {
-		wsbench.WsBench(address, path, sockets)
+		wsbench.WsBench(address, path, sockets, interval)
 	}
 }
 
@@ -91,6 +92,7 @@ func init() {
 	RootCmd.Flags().StringVarP(&address, "address", "a", "localhost:8080", "Websocket endpoint address")
 	RootCmd.Flags().StringVarP(&path, "path", "p", "/echo", "Websocket endpoint relative path")
 	RootCmd.Flags().IntVarP(&sockets, "sockets", "s", 500, "Number of Sockets to use")
+	RootCmd.Flags().IntVarP(&interval, "interval", "i", "1", "Message sending Interval in seconds.")
 }
 
 // initConfig reads in config file and ENV variables if set.
