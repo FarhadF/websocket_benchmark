@@ -7,11 +7,12 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
 func WsBench(address string, path string, sockets int, interval int, message string, duration int) {
-	ch := make(chan int)
+	//ch := make(chan int)
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	u := url.URL{Scheme: "ws", Host: address, Path: path}
@@ -23,25 +24,29 @@ func WsBench(address string, path string, sockets int, interval int, message str
 	readError := 0
 	writeError := 0
 	connectionError := 0
+	//	writeBytes := 0
+	//	readBytes := 0
 	var durr time.Duration
+	var wg sync.WaitGroup
 	for {
 		counter++
+		wg.Add(1)
 		go func() {
 			co, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-
 			if err != nil {
 				log.Fatal("dial:", err)
 				connectionError++
 			}
 			for {
+				if time.Since(start) > (time.Duration(duration) * time.Second) {
+					break
+				}
 				writeTime := time.Now()
 				err = co.WriteMessage(websocket.TextMessage, []byte(message))
 				if err != nil {
 					log.Println("write:", err)
 					writeError++
-
 				}
-
 				_, readMessage, err := co.ReadMessage()
 				if err != nil {
 					log.Println("read:", err)
@@ -55,25 +60,21 @@ func WsBench(address string, path string, sockets int, interval int, message str
 				log.Println(dur)
 				durr += dur
 				readCounter++
-
-				ch <- counter
+				//ch <- counter
 				time.Sleep(time.Duration(interval) * time.Second)
 			}
+			defer wg.Done()
 
 		}()
 		fmt.Println(counter)
 		//time.Sleep(1 * time.Millisecond)
 		if counter >= sockets {
 			break
-
 		}
 	}
-	for {
-		if time.Since(start) > (time.Duration(duration) * time.Second) {
-			break
-		}
-		<-ch
-
-	}
+	wg.Wait()
+	//	for {
+	//		<-ch
+	//	}
 	log.Println("Total Received:", readCounter, "Average RTT:", (durr / time.Duration(readCounter)), "Connection Error:", connectionError, "Write Error:", writeError, "Read Error:", readError, "Message Mismatch:", compareError)
 }
