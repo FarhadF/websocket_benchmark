@@ -15,13 +15,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/farhadf/wsbench"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
+	"websocket_benchmark/wsbench"
 )
 
 var (
