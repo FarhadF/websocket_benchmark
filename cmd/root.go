@@ -57,7 +57,7 @@ func rootCmd(cmd *cobra.Command, args []string) {
 	if versionFlag := getFlagBoolPtr(cmd, "version"); versionFlag != nil {
 		fmt.Println("websocket_benchmark v1.0.0")
 	} else {
-		wsbench.WsBench(address, path, sockets, interval, message)
+		wsbench.WsBench(address, path, sockets, interval, message, duration)
 	}
 }
 
