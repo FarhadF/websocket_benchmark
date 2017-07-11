@@ -31,6 +31,7 @@ var (
 	sockets  int
 	interval int
 	message  string
+	duration int
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -95,6 +96,7 @@ func init() {
 	RootCmd.Flags().IntVarP(&sockets, "sockets", "s", 500, "Number of Sockets to use")
 	RootCmd.Flags().IntVarP(&interval, "interval", "i", 1, "Message sending Interval in seconds")
 	RootCmd.Flags().StringVarP(&message, "message", "m", `{"message":"sample message"}`, "Message to send")
+	RootCmd.Flags().IntVarP(&duration, "duration", "d", 60, "Runtime Duration")
 }
 
 // initConfig reads in config file and ENV variables if set.
