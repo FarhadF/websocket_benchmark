@@ -31,6 +31,7 @@ func WsBench(address string, path string, sockets int, interval int, message str
 		wg.Add(1)
 		go func() {
 			co, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+			defer co.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Fatal("dial:", err)
 				connectionError++
