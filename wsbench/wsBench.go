@@ -96,7 +96,7 @@ func WsBench(address string, path string, sockets int, interval int, message str
 		<-controlChan
 	}*/
 
-	log.Println("here")
+	//log.Println("here")
 	/*	var readC int
 		var writeC int
 		for i := 0; i < len(readChan); i++ {
