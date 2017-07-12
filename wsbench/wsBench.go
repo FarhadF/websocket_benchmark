@@ -19,12 +19,12 @@ func WsBench(address string, path string, sockets int, interval int, message str
 	counter := 0
 	var readCounter uint64 = 0
 	var writeCounter uint64 = 0
-	compareError := 0
-	readError := 0
-	writeError := 0
-	connectionError := 0
-	writeBytes := 0
-	readBytes := 0
+	var compareError uint64 = 0
+	var readError uint64 = 0
+	var writeError uint64 = 0
+	var connectionError uint64 = 0
+	var writeBytes uint64 = 0
+	var readBytes uint64 = 0
 
 	//readChan := make(chan int)
 	//writeChan := make(chan int)
@@ -49,9 +49,11 @@ func WsBench(address string, path string, sockets int, interval int, message str
 				err = co.WriteMessage(websocket.TextMessage, []byte(message))
 				if err != nil {
 					log.Println("write:", err)
-					writeError++
+					//writeError++
+					atomic.AddUint64(&writeError, 1)
 				} else {
-					writeBytes += len([]byte(message))
+					//writeBytes += len([]byte(message))
+					atomic.AddUint64(&writeBytes, uint64(len([]byte(message))))
 					//writeCounter++
 					atomic.AddUint64(&writeCounter, 1)
 					//writeChan <- 1
@@ -62,12 +64,14 @@ func WsBench(address string, path string, sockets int, interval int, message str
 					readError++
 				} else if string(readMessage) != message {
 					log.Printf("received message is not the same! recv: %s", readMessage)
-					compareError++
+					//compareError++
+					atomic.AddUint64(&compareError, 1)
 					//readCounter++
 					atomic.AddUint64(&readCounter, 1)
 					//	readChan <- 1
 				} else {
-					readBytes += len(readMessage)
+					//readBytes += len(readMessage)
+					atomic.AddUint64(&readBytes, uint64(len([]byte(readMessage))))
 					//readCounter++
 					//	readChan <- 1
 					atomic.AddUint64(&readCounter, 1)
@@ -107,11 +111,20 @@ func WsBench(address string, path string, sockets int, interval int, message str
 		}
 	*/
 	wg.Wait()
+
 	readCounterF := atomic.LoadUint64(&readCounter)
 	writeCounterF := atomic.LoadUint64(&writeCounter)
+	writeBytesF := atomic.LoadUint64(&writeBytes)
+	readBytesF := atomic.LoadUint64(&readBytes)
+	connectionErrorF := atomic.LoadUint64(&connectionError)
+	writeErrorF := atomic.LoadUint64(&writeError)
+	readErrorF := atomic.LoadUint64(&readError)
+	compareErrorF := atomic.LoadUint64(&compareError)
+
 	//	for {
 	//		<-ch
 	//	}
 	//log.Println("wtf:", writeC, readC)
-	log.Println("Total Sent:", writeCounterF, "Total Received:", readCounterF, "Bytes Sent", writeBytes, "Bytes Received:", readBytes, "Average RTT:", (durr / time.Duration(readCounter)), "Connection Error:", connectionError, "Write Error:", writeError, "Read Error:", readError, "Message Mismatch:", compareError)
+
+	log.Println("Total Sent:", writeCounterF, "Total Received:", readCounterF, "Bytes Sent", writeBytesF, "Bytes Received:", readBytesF, "Average RTT:", (durr / time.Duration(readCounterF)), "Connection Error:", connectionErrorF, "Write Error:", writeErrorF, "Read Error:", readErrorF, "Message Mismatch:", compareErrorF)
 }
