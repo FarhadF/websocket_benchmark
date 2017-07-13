@@ -25,10 +25,6 @@ func WsBench(address string, path string, sockets int, interval int, message str
 	var connectionError uint64 = 0
 	var writeBytes uint64 = 0
 	var readBytes uint64 = 0
-
-	//readChan := make(chan int)
-	//writeChan := make(chan int)
-	//controlChan := make(chan int)
 	var durr time.Duration
 	var wg sync.WaitGroup
 	for {
@@ -53,71 +49,36 @@ func WsBench(address string, path string, sockets int, interval int, message str
 					err = co.WriteMessage(websocket.TextMessage, []byte(message))
 					if err != nil {
 						log.Println("write:", err)
-						//writeError++
 						atomic.AddUint64(&writeError, 1)
 					} else {
-						//writeBytes += len([]byte(message))
 						atomic.AddUint64(&writeBytes, uint64(len([]byte(message))))
-						//writeCounter++
 						atomic.AddUint64(&writeCounter, 1)
-						//writeChan <- 1
-
 						_, readMessage, err := co.ReadMessage()
 						if err != nil {
 							log.Println("read:", err)
 							readError++
 						} else if string(readMessage) != message {
 							log.Printf("received message is not the same! recv: %s", readMessage)
-							//compareError++
 							atomic.AddUint64(&compareError, 1)
-							//readCounter++
 							atomic.AddUint64(&readCounter, 1)
-							//	readChan <- 1
 						} else {
-							//readBytes += len(readMessage)
 							atomic.AddUint64(&readBytes, uint64(len([]byte(readMessage))))
-							//readCounter++
-							//	readChan <- 1
 							atomic.AddUint64(&readCounter, 1)
 						}
 					}
 					dur := time.Since(writeTime)
 					log.Println(dur)
 					durr += dur
-					//readCounter++
-					//ch <- counter
 					time.Sleep(time.Duration(interval) * time.Second)
 				}
 			}
 			defer wg.Done()
-			//controlChan <- 1
 		}()
-
-		//time.Sleep(1 * time.Millisecond)
 		if counter >= sockets {
 			break
 		}
 	}
-	/*	for i := 0; i < counter; i++ {
-		<-controlChan
-	}*/
-
-	//log.Println("here")
-	/*	var readC int
-		var writeC int
-		for i := 0; i < len(readChan); i++ {
-			temp := <-readChan
-			readC += temp
-			log.Println("wtf")
-
-		}
-		for i := 0; i < len(writeChan); i++ {
-			temp := <-writeChan
-			writeC += temp
-		}
-	*/
 	wg.Wait()
-
 	readCounterF := atomic.LoadUint64(&readCounter)
 	writeCounterF := atomic.LoadUint64(&writeCounter)
 	writeBytesF := atomic.LoadUint64(&writeBytes)
@@ -126,11 +87,6 @@ func WsBench(address string, path string, sockets int, interval int, message str
 	writeErrorF := atomic.LoadUint64(&writeError)
 	readErrorF := atomic.LoadUint64(&readError)
 	compareErrorF := atomic.LoadUint64(&compareError)
-
-	//	for {
-	//		<-ch
-	//	}
-	//log.Println("wtf:", writeC, readC)
 	var averageRtt time.Duration
 	if readCounterF == 0 {
 		averageRtt = time.Duration(0)
