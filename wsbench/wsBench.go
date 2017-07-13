@@ -36,52 +36,55 @@ func WsBench(address string, path string, sockets int, interval int, message str
 		wg.Add(1)
 		go func() {
 			co, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-			defer co.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+
 			if err != nil {
-				log.Fatal("dial:", err)
+				log.Println("dial:", err)
 				connectionError++
-			}
-			for {
-				if time.Since(start) > (time.Duration(duration) * time.Second) {
-					break
-				}
-				writeTime := time.Now()
-				err = co.WriteMessage(websocket.TextMessage, []byte(message))
-				if err != nil {
-					log.Println("write:", err)
-					//writeError++
-					atomic.AddUint64(&writeError, 1)
-				} else {
-					//writeBytes += len([]byte(message))
-					atomic.AddUint64(&writeBytes, uint64(len([]byte(message))))
-					//writeCounter++
-					atomic.AddUint64(&writeCounter, 1)
-					//writeChan <- 1
-				}
-				_, readMessage, err := co.ReadMessage()
-				if err != nil {
-					log.Println("read:", err)
-					readError++
-				} else if string(readMessage) != message {
-					log.Printf("received message is not the same! recv: %s", readMessage)
-					//compareError++
-					atomic.AddUint64(&compareError, 1)
+			} else {
+				defer co.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				for {
+					if time.Since(start) > (time.Duration(duration) * time.Second) {
+						break
+					}
+					writeTime := time.Now()
+					err = co.WriteMessage(websocket.TextMessage, []byte(message))
+					if err != nil {
+						log.Println("write:", err)
+						//writeError++
+						atomic.AddUint64(&writeError, 1)
+					} else {
+						//writeBytes += len([]byte(message))
+						atomic.AddUint64(&writeBytes, uint64(len([]byte(message))))
+						//writeCounter++
+						atomic.AddUint64(&writeCounter, 1)
+						//writeChan <- 1
+
+						_, readMessage, err := co.ReadMessage()
+						if err != nil {
+							log.Println("read:", err)
+							readError++
+						} else if string(readMessage) != message {
+							log.Printf("received message is not the same! recv: %s", readMessage)
+							//compareError++
+							atomic.AddUint64(&compareError, 1)
+							//readCounter++
+							atomic.AddUint64(&readCounter, 1)
+							//	readChan <- 1
+						} else {
+							//readBytes += len(readMessage)
+							atomic.AddUint64(&readBytes, uint64(len([]byte(readMessage))))
+							//readCounter++
+							//	readChan <- 1
+							atomic.AddUint64(&readCounter, 1)
+						}
+					}
+					dur := time.Since(writeTime)
+					log.Println(dur)
+					durr += dur
 					//readCounter++
-					atomic.AddUint64(&readCounter, 1)
-					//	readChan <- 1
-				} else {
-					//readBytes += len(readMessage)
-					atomic.AddUint64(&readBytes, uint64(len([]byte(readMessage))))
-					//readCounter++
-					//	readChan <- 1
-					atomic.AddUint64(&readCounter, 1)
+					//ch <- counter
+					time.Sleep(time.Duration(interval) * time.Second)
 				}
-				dur := time.Since(writeTime)
-				log.Println(dur)
-				durr += dur
-				//readCounter++
-				//ch <- counter
-				time.Sleep(time.Duration(interval) * time.Second)
 			}
 			defer wg.Done()
 			//controlChan <- 1
@@ -125,6 +128,11 @@ func WsBench(address string, path string, sockets int, interval int, message str
 	//		<-ch
 	//	}
 	//log.Println("wtf:", writeC, readC)
-
-	log.Println("Total Sent:", writeCounterF, "Total Received:", readCounterF, "Bytes Sent", writeBytesF, "Bytes Received:", readBytesF, "Average RTT:", (durr / time.Duration(readCounterF)), "Connection Error:", connectionErrorF, "Write Error:", writeErrorF, "Read Error:", readErrorF, "Message Mismatch:", compareErrorF)
+	var averageRtt time.Duration
+	if readCounterF == 0 {
+		averageRtt = time.Duration(0)
+	} else {
+		averageRtt = durr / time.Duration(readCounterF)
+	}
+	log.Println("Total Sent:", writeCounterF, ", Total Received:", readCounterF, ", Bytes Sent", writeBytesF, ", Bytes Received:", readBytesF, ", Average RTT:", averageRtt, ", Connection Error:", connectionErrorF, ", Write Error:", writeErrorF, ", Read Error:", readErrorF, ", Message Mismatch:", compareErrorF)
 }
