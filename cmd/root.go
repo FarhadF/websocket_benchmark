@@ -97,8 +97,8 @@ func init() {
 	RootCmd.Flags().IntVarP(&sockets, "sockets", "s", 500, "Number of Sockets to use")
 	RootCmd.Flags().IntVarP(&interval, "interval", "i", 1, "Message sending Interval in seconds")
 	RootCmd.Flags().StringVarP(&message, "message", "m", `{"message":"sample message"}`, "Message to send")
-	RootCmd.Flags().IntVarP(&duration, "duration", "d", 60, "Runtime Duration")
-	RootCmd.Flags().IntVarP(&timeout, "timeout", "t", 15, "Websocket handshake timeout")
+	RootCmd.Flags().IntVarP(&duration, "duration", "d", 60, "Runtime Duration in seconds")
+	RootCmd.Flags().IntVarP(&timeout, "timeout", "t", 15, "Websocket handshake timeout in seconds")
 }
 
 // initConfig reads in config file and ENV variables if set.
