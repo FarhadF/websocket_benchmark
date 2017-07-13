@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func WsBench(address string, path string, sockets int, interval int, message string, duration int) {
+func WsBench(address string, path string, sockets int, interval int, message string, duration int, connectionTimeout int) {
 	u := url.URL{Scheme: "ws", Host: address, Path: path}
 	log.Printf("connecting to %s", u.String())
 	start := time.Now()
@@ -35,7 +35,10 @@ func WsBench(address string, path string, sockets int, interval int, message str
 		counter++
 		wg.Add(1)
 		go func() {
-			co, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+			var dialer = websocket.Dialer{
+				HandshakeTimeout: time.Duration(connectionTimeout) * time.Second,
+			}
+			co, _, err := dialer.Dial(u.String(), nil)
 
 			if err != nil {
 				log.Println("dial:", err)

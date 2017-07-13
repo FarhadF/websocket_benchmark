@@ -32,6 +32,7 @@ var (
 	interval int
 	message  string
 	duration int
+	timeout  int
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -55,9 +56,9 @@ func Execute() {
 
 func rootCmd(cmd *cobra.Command, args []string) {
 	if versionFlag := getFlagBoolPtr(cmd, "version"); versionFlag != nil {
-		fmt.Println("websocket_benchmark v1.0.0")
+		fmt.Println("websocket_benchmark v1.0.1")
 	} else {
-		wsbench.WsBench(address, path, sockets, interval, message, duration)
+		wsbench.WsBench(address, path, sockets, interval, message, duration, timeout)
 	}
 }
 
@@ -97,6 +98,7 @@ func init() {
 	RootCmd.Flags().IntVarP(&interval, "interval", "i", 1, "Message sending Interval in seconds")
 	RootCmd.Flags().StringVarP(&message, "message", "m", `{"message":"sample message"}`, "Message to send")
 	RootCmd.Flags().IntVarP(&duration, "duration", "d", 60, "Runtime Duration")
+	RootCmd.Flags().IntVarP(&timeout, "timeout", "t", 15, "Websocket handshake timeout")
 }
 
 // initConfig reads in config file and ENV variables if set.
